@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Controle de Incidentes de TI</title>
+
+<style>
+:root{
+    --bg:#18181b;--card:#27272a;--input:#3f3f46;--border:#52525b;
+    --text:#fff;--accent:#4e73df;--accent-hover:#2f54b5;
+}
+body{
+    background:var(--bg);color:var(--text);font-family:Arial;
+    padding:20px;margin:0;display:flex;justify-content:center;
+}
+main{
+    width:100%;max-width:900px;background:var(--card);padding:20px;
+    border-radius:12px;
+}
+h1{text-align:center;margin:10px 0;}
+form{
+    display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;
+}
+label{width:100%;font-size:14px;margin-top:10px;}
+input,select{
+    width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);
+    background:var(--input);color:var(--text);
+}
+button{
+    background:var(--accent);border:0;padding:12px 18px;margin-top:10px;
+    color:#fff;font-weight:bold;border-radius:6px;cursor:pointer;
+}
+button:hover{background:var(--accent-hover);}
+table{
+    width:100%;border-collapse:collapse;margin-top:10px;font-size:14px;
+}
+th,td{
+    border:1px solid var(--border);padding:10px;text-align:center;
+}
+th{background:#2d2d31;}
+.status-aberto{color:#ff5555;font-weight:bold;}
+.status-andamento{color:#ffb341;font-weight:bold;}
+.status-resolvido{color:#6aff6a;font-weight:bold;}
+.btn-del{
+    background:#d93636;color:#fff;border:0;padding:5px 10px;border-radius:5px;
+    cursor:pointer;
+}
+.btn-del:hover{background:#a22222;}
+
+/* Responsividade */
+@media (max-width:600px){
+    table{font-size:12px;}
+    th,td{padding:6px;}
+}
+</style>
+</head>
+
+<body>
+<main>
+<header>
+    <h1>Controle de Incidentes de TI</h1>
+</header>
+
+<section aria-label="Formulário de cadastro">
+<form id="formIncidente">
+
+    <label for="titulo">Título do incidente</label>
+    <input id="titulo" name="titulo" maxlength="50" required 
+           placeholder="Ex: Falha no servidor">
+
+    <label for="descricao">Descrição</label>
+    <input id="descricao" name="descricao" maxlength="100" required
+           placeholder="Explique o ocorrido">
+
+    <button type="submit">Registrar</button>
+</form>
+</section>
+
+<section aria-label="Lista de incidentes">
+<table>
+    <thead>
+        <tr>
+            <th>Título</th>
+            <th>Descrição</th>
+            <th>Status</th>
+            <th>Ação</th>
+        </tr>
+    </thead>
+    <tbody id="listaIncidentes"></tbody>
+</table>
+</section>
+</main>
+
+<script>
+let incidentes = JSON.parse(localStorage.getItem("incidentes")) || [];
+const lista = document.getElementById("listaIncidentes");
+
+function salvar(){localStorage.setItem("incidentes",JSON.stringify(incidentes));}
+
+function render(){
+    lista.innerHTML="";
+    incidentes.forEach((i,x)=>{
+        lista.innerHTML += `
+        <tr>
+            <td>${i.titulo}</td>
+            <td>${i.descricao}</td>
+            <td class="status-${i.status}">${i.status}</td>
+            <td>
+                <select onchange="alterar(${x},this.value)">
+                    <option value="aberto"${i.status==="aberto"?" selected":""}>Aberto</option>
+                    <option value="andamento"${i.status==="andamento"?" selected":""}>Em andamento</option>
+                    <option value="resolvido"${i.status==="resolvido"?" selected":""}>Resolvido</option>
+                </select>
+                <button class="btn-del" onclick="remover(${x})">Excluir</button>
+            </td>
+        </tr>`;
+    });
+}
+
+formIncidente.onsubmit = e=>{
+    e.preventDefault();
+    const titulo = document.getElementById("titulo").value.trim();
+    const descricao = document.getElementById("descricao").value.trim();
+
+    if(titulo==="" || descricao===""){return;}
+
+    incidentes.push({titulo,descricao,status:"aberto"});
+    salvar();render();formIncidente.reset();
+};
+
+function alterar(i,s){incidentes[i].status=s;salvar();render();}
+function remover(i){incidentes.splice(i,1);salvar();render();}
+render();
+</script>
+
+</body>
+</html>
